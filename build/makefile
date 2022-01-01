@@ -1,11 +1,5 @@
 all:
-	fpc ../src/main.pp -o"../build/main"
+	fpc ../src/main.pp -o"../build/pasdo"
 clear:
 	rm *.o
-	rm main
-run:
-	./main
-test:
-	fpc ../src/main.pp -o"../build/main"
-	rm *.o
-	rm main
+	rm pasdo

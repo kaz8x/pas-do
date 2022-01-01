@@ -43,39 +43,42 @@ VAR
     i : integer;
 BEGIN
     jData := GetJSON(readfile());
-    FOR i:= 0 TO jData.Count - 1 DO
-    BEGIN
-        TextColor(Black);
-        TextBackground(White);
-        write('|');
-        TextBackground(Magenta);
-        TextColor(White);
-        write(TJSONObject(jData).Names[i]);
-        TextBackground(White);
-        TextColor(Black);
-        write('|');
-        write(jData.FindPath(TJSONObject(jData).Names[i] + '[0]').AsString);
-        write('|');
-        TextColor(White);
-        CASE(jData.FindPath(TJSONObject(jData).Names[i] + '[2]').AsString) OF
-            'Not complete':
-                BEGIN
-                    TextBackground(Red);
-                    write('Not complete');
-                    TextBackground(White);
-                END;
-            'Complete':
-                BEGIN
-                    TextBackground(Green);
-                    write('Complete');
-                    TextBackground(White);
-                END;
+    IF jData.Count = 0 THEN 
+        writeln('You have no saved tasks')
+    ELSE
+        FOR i:= 0 TO jData.Count - 1 DO
+        BEGIN
+            TextColor(Black);
+            TextBackground(White);
+            write('|');
+            TextBackground(Magenta);
+            TextColor(White);
+            write(TJSONObject(jData).Names[i]);
+            TextBackground(White);
+            TextColor(Black);
+            write('|');
+            write(jData.FindPath(TJSONObject(jData).Names[i] + '[0]').AsString);
+            write('|');
+            TextColor(White);
+            CASE(jData.FindPath(TJSONObject(jData).Names[i] + '[2]').AsString) OF
+                'Not complete':
+                    BEGIN
+                        TextBackground(Red);
+                        write('Not complete');
+                        TextBackground(White);
+                    END;
+                'Complete':
+                    BEGIN
+                        TextBackground(Green);
+                        write('Complete');
+                        TextBackground(White);
+                    END;
+            END;
+            TextColor(Black);
+            writeln('|');
+            TextBackground(Black);
+            TextColor(White);
         END;
-        TextColor(Black);
-        writeln('|');
-        TextBackground(Black);
-        TextColor(White);
-    END;
     jData.Free;
 END;
 PROCEDURE writetodo(time, name, desc: String);
@@ -114,8 +117,9 @@ BEGIN
     jData.Free;
 END;
 BEGIN
-    writeln(sLineBreak + sLineBreak + sLineBreak +'Copyright (c) 2021 Tomáš Dvořák' + sLineBreak);
+    writeln(sLineBreak + sLineBreak + sLineBreak + sLineBreak);
     rendertable();
+    TextBackground(Black);
     WHILE TRUE DO
     BEGIN
         write('->');
@@ -130,6 +134,7 @@ BEGIN
                     writeln(description(mdescid));
                 END;
             'exit' : BREAK;
+            '' : ;
             'sync':
                 BEGIN
                     rendertable();
