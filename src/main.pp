@@ -1,12 +1,9 @@
 PROGRAM main;
 {$MODE OBJFPC}
-USES
-    Classes, Sysutils, fpjson, jsonparser, TypInfo, crt;
-VAR
-    input, mname, mdesc, mtime, mtickid, mdescid : String;
+USES Classes, Sysutils, fpjson, jsonparser, TypInfo, crt;
+VAR input, mname, mdesc, mtime, mtickid, mdescid : String;
 PROCEDURE writefile(text: String);
-VAR
-    data : TextFile;
+VAR data : TextFile;
 BEGIN
     AssignFile(data, '../src/data.json');
     TRY
@@ -109,45 +106,93 @@ END;
 FUNCTION description(descid: String) : String;
 VAR
     jData : TJSONData;
-    js : String;
 BEGIN
     jData := GetJSON(readfile());
-    js :=jData.FindPath(descid + '[1]').AsString;
-    description := js;
+    description := jData.FindPath(descid + '[1]').AsString;
+    jData.Free;
+END;
+PROCEDURE purge();
+VAR
+    jData : TJSONData;
+    jObject : TJSONObject;
+    i : Integer;
+BEGIN
+    jData := GetJSON(readfile());
+    jObject := jData as TJSONObject;
+    FOR i := 0 TO jData.Count - 1 DO
+    BEGIN
+        CASE(jData.FindPath(TJSONObject(jData).Names[i] + '[2]').AsString) OF
+            'Not complete' : ;
+            'Complete' :
+                BEGIN
+                    write('Still alive');
+                    jObject.Delete(jObject.Names[i]);
+                END;
+        END;
+    END;
+    writefile(jObject.AsJSON);
     jData.Free;
 END;
 BEGIN
-    writeln(sLineBreak + sLineBreak + sLineBreak + sLineBreak);
-    rendertable();
+    //ENTRY
     TextBackground(Black);
     WHILE TRUE DO
     BEGIN
+        clrscr;
+        rendertable();
         write('->');
         readln(input);
         CASE(input) OF
+            'purge' :
+                BEGIN
+                    //purge();
+                END;
             'description' :
                 BEGIN
                     TextColor(Green);
                     write('Enter task name: ');
                     TextColor(White);
                     readln(mdescid);
-                    writeln(description(mdescid));
+                    TRY
+                        writeln(description(mdescid));
+                        writeln('***Press any key to exit description***');
+                        REPEAT UNTIL keypressed; //FIXME
+                    EXCEPT
+                        ON E: EAccessViolation DO
+                        BEGIN
+                            TextColor(Red);
+                            writeln('Error occured. Task entered probably doesn`t exist. Press any key to return to main screen. Details:', E.Message);
+                            TextColor(White);
+                            REPEAT UNTIL keypressed;
+                        END;
+                    END;
                 END;
             'exit' : BREAK;
             '' : ;
-            'sync':
-                BEGIN
-                    rendertable();
-                END;
             'tick' :
                 BEGIN
                     TextColor(Green);
                     write('Enter task name: ');
                     TextColor(White);
                     readln(mtickid);
-                    ticktodo(mtickid);
+                    TRY
+                        ticktodo(mtickid);
+                    EXCEPT
+                        ON E: EAccessViolation DO
+                        BEGIN
+                            TextColor(Red);
+                            writeln('Error occured. Task entered probably doesn`t exist. Press any key to return to main screen. Details:', E.Message);
+                            TextColor(White);
+                            REPEAT UNTIL keypressed;
+                        END;
+                    END;
                 END;
-            'help' : writeln('Not implemented yet');
+            'help' : 
+                BEGIN
+                    writeln('Not implemented yet');
+                    writeln('***Press any key to exit help***');
+                    REPEAT UNTIL keypressed;
+                END;
             'addtask' :
                 BEGIN
                     TextColor(Green);
@@ -164,15 +209,11 @@ BEGIN
                     readln(mdesc);
                     writetodo(mtime, mname, mdesc);
                 END;
-            'clear' :
-                BEGIN
-                    clrscr;
-                    rendertable();
-                END;
         ELSE 
             TextColor(Red);
             writeln('Unknown command');
             TextColor(White);
+            sleep(500);
         END;
     END;
 END.

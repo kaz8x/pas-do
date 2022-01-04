@@ -1,2 +1,3 @@
 build/*.o
-build/main
+build/pasdo
+src/backup.json
